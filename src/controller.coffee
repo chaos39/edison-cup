@@ -6,13 +6,14 @@ class Controller
     @_blinkers = blinkers
     @_senseInterval = 1000
     @_senseIntervalHandler = null
+    @_oldSensors = {}
 
   # Initializes the controller, after the backend and devices are set up.
   #
   # @return {Promise<Boolean>} resolves to true when the controller is
   #   initialized
   initialize: ->
-    # HACK: push notifications can be disabled if WebSockets are blocked
+    # NOTE: Push notifications can be disabled if WebSockets are blocked
     if @_backend.pushRegistration
       @_backend.pushRegistration.onpush = @_onPush.bind(@)
 
@@ -32,6 +33,14 @@ class Controller
       return
     @_senseIntervalHandler = setInterval callback, @_senseInterval
 
+  # Updates the LCD message to reflect the current board's identity.
+  updateLcd: ->
+    if @_backend.config.identity.code
+      code = @_backend.config.identity.code.replace(/\w{3}/g, "$& ")
+      @_devices.lcd.alert 'Board code', code
+    else
+      @_devices.lcd.info 'Registered', @_backend.config.identity.name
+
   # Stops the sensing loop, if it was started.
   #
   # @return undefined
@@ -45,17 +54,50 @@ class Controller
   #
   # @return undefined
   _onSenseInterval: ->
-    sensors = @_devices.sensors()
-    @_backend.client.updateSensors(sensors)
+    newSensors = @_devices.sensors()
+    sensorsDiff = @_sensorsDiff @_oldSensors, newSensors
+    return if sensorsDiff is null
+    @_oldSensors = newSensors
+    @_backend.client.updateSensors(sensorsDiff)
       .then (reaction) =>
         for blinkerName, blinkTime of reaction
           if blinker = @_blinkers[blinkerName]
             blinker.blinkFor blinkTime
     return
 
+  # Computes the difference between two sensor readings.
+  #
+  # @param {Object<String, Number|String>} oldSensors the old sensor readings
+  # @param {Object<String, Number|String>} newSensors the new sensor readings
+  # @return {Object?<String, Number|String>} an object that only has properties
+  #   for the new sensor readings; nil if the readings show no difference
+  _sensorsDiff: (oldSensors, newSensors) ->
+    diff = null
+    for name, value of newSensors
+      continue if oldSensors[name] is value
+      diff = {} if diff is null
+      diff[name] = value
+    diff
+
   # Called when a push notification is received.
   _onPush: (event) ->
-    console.error "PUSH DATA: #{event.data}"
+    try
+      data = JSON.parse event.data
+    catch jsonError
+      return
+    switch data.cmd
+      when 'reload'
+        @_backend.reloadIdentity().then =>
+          @updateLcd()
+      when 'blink'
+        if data.color of @_blinkers
+          @_blinkers[data.color].blinkFor data.seconds
+      when 'lcd'
+        hexColor = data.color
+        red = parseInt hexColor.substring(0, 2), 16
+        green = parseInt hexColor.substring(2, 4), 16
+        blue = parseInt hexColor.substring(4, 6), 16
+        @_devices.lcd.write data.line1, data.line2, red, green, blue
     return
 
 

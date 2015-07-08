@@ -2,18 +2,20 @@ request = require 'request'
 
 # Client for the main backend server.
 class Client
-  # @param {String} serverUrl the main URL for the backend server
-  constructor: (serverUrl) ->
-    @_serverUrl = serverUrl
+  # @param {Config} config the backend configuration
+  constructor: (config) ->
+    @_serverUrl = config.serverUrl
+    @_serial = config.serial
     @_key = null
 
   # Creates an identity for this board.
   #
   # @return {Promise<Object>} resolved with the board's identity
   register: ->
-    cup_data =
-      node_version: process.versions.node
-    @_jsonRequest 'POST', "#{@_serverUrl}/cups.json", cup: cup_data
+    params = board:
+        node_version: process.versions.node
+        serial: @_serial
+    @_jsonRequest 'POST', "#{@_serverUrl}/boards.json", params
 
   # Plugs this board's identity into the client.
   #
@@ -23,17 +25,22 @@ class Client
     @_key = identity.key
     return
 
+  # Reloads the details of the board's identity from the server.
+  #
+  # @return {Promise<Object>} resolved with the board's identity
+  reloadIdentity: ->
+    @_jsonRequest('GET', "#{@_serverUrl}/boards/#{@_key}.json")
+
   # Sends this board's push registration to the backend server.
   #
   # @param {W3gram.PushRegistration} registration the board's push
   #   registration
   # @return {Promise<Boolean>} resolved with true
   updatePushInfo: (registration) ->
-    url = "#{@_serverUrl}/cups/#{@_key}/push_info.json"
-    cup_data =
-      push_uid: registration.registrationId
-      push_url: registration.endpoint
-    @_jsonRequest('POST', url, cup: cup_data).then =>
+    url = "#{@_serverUrl}/boards/#{@_key}.json"
+    params = board:
+        push_url: registration.endpoint
+    @_jsonRequest('PATCH', url, params).then =>
       true
 
   # Sends this board's sensor information to the backend server.
@@ -42,8 +49,8 @@ class Client
   # @return {Promise<Object>} resolves to the backend's reaction to the sensor
   #   information
   updateSensors: (sensors) ->
-    url = "#{@_serverUrl}/cups/#{@_key}/sensors.json"
-    @_jsonRequest('POST', url, sensors: sensors)
+    url = "#{@_serverUrl}/boards/#{@_key}/sensors.json"
+    @_jsonRequest('PUT', url, sensors: sensors)
 
   # Issues a generic JSON request to the backend.
   #
@@ -70,11 +77,13 @@ class Client
       request options, (error, response, body) =>
         if error
           reject error
+
+        if response.code < 200 || response.code >= 400
+          reject new Error("Server returned HTTP error code #{response.code}")
         try
           data = JSON.parse body
         catch jsonError
           reject jsonError
         resolve data
-
 
 module.exports = Client

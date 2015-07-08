@@ -10,14 +10,19 @@ class Config
   # @property {String} the server URL
   serverUrl: null
 
+  # @property {String} the board's serial number
+  serial: null
+
   # @property {Object<String, String>} identity information for the server
   identity: null
 
   constructor: ->
+    @_serialFile = '/factory/serial_number'
     @_configDir = path.join process.env['HOME'], '.edison-cup'
     @_serverFile = path.join @_configDir, 'server.url'
     @_identityFile = path.join @_configDir, 'identity.json'
     @serverUrl = null
+    @serial = null
     @identity = null
     @_resolveReady = null
     @ready = new Promise (resolve, reject) =>
@@ -29,6 +34,8 @@ class Config
   #   available
   initialize: ->
     @_ensureDirExists()
+      .then =>
+        @_readSerialFile()
       .then =>
         @_readServerFile()
       .then =>
@@ -58,6 +65,23 @@ class Config
             reject error
             return
           resolve true
+
+  # Reads the config file that contains the board's serial number.
+  #
+  # @return {Promise<String>} resolved with the board's serial number
+  _readSerialFile: ->
+    new Promise (resolve, reject) =>
+      fs.exists @_serialFile, (exists) =>
+        if exists
+          fs.readFile @_serialFile, encoding: 'utf8', (error, data) =>
+            if error
+              reject error
+              return
+            @serial = data.trim()
+            resolve @serial
+        else
+          @serial = null
+          resolve null
 
   # Reads the config file that contains the server URL.
   #

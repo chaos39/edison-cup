@@ -6,7 +6,11 @@ class Lcd
   info: (line1, line2) ->
     @write line1, line2, 0, 0, 255
 
-  # Output an error message.
+  # Output an alert that the user should notice.
+  alert: (line1, line2) ->
+    @write line1, line2, 255, 255, 0
+
+  # Output an alert message.
   error: (line1, line2) ->
     @write line1, line2, 255, 0, 0
 

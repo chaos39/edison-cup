@@ -16,9 +16,17 @@ class Alcohol
 
   # Waits until the alcohol sensor is heated.
   #
+  # @param {Boolean} waitUntilHeated if false, the returned promise will only
+  #   be resolved when the alcohol sensor appears to be heated; this requires that
+  #   the sensor is present and in a non-alcoholic environment
   # @return {Promise} resolved when the alcohol sensor is heated up
-  initialize: ->
+  initialize: (skipHeating) ->
     @_alcohol.heaterEnable true
+
+    if skipHeating
+      return new Promise (resolve, reject) ->
+        resolve true
+
     new Promise (resolve, reject) =>
       timeoutCallback = =>
         value = @_alcohol.value()

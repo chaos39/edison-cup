@@ -4,6 +4,7 @@ Backend = require './backend.coffee'
 Controller = require './controller.coffee'
 Devices = require './devices.coffee'
 LedBlinker = require './led_blinker.coffee'
+WebController = require './web_controller.coffee'
 
 backend = new Backend()
 devices = new Devices()
@@ -12,17 +13,25 @@ blinkers =
   blue: new LedBlinker devices.blueLed
   green: new LedBlinker devices.greenLed
 controller = new Controller backend, devices, blinkers
+webController = new WebController backend, devices, blinkers
 
-backend.initialize()
-  .then ->
-    devices.initialize()
-  .then ->
-    devices.lcd.info 'Initializing', 'Controller'
-    controller.initialize()
-  .then ->
-    controller.startSensing()
-    devices.lcd.info 'Boot', 'Completed'
-  .catch (error) ->
-    console.error "BACKEND INIT FAILED: #{error}"
-    console.error error.stack
-    process.exit 1
+Promise.resolve(true)
+    .then ->
+      backend.initialize()
+    .then ->
+      devices.initialize()
+    .then ->
+      devices.lcd.info 'Initializing', 'Controller'
+      controller.initialize()
+    .then ->
+      devices.lcd.info 'Initializing', 'Web controller'
+      webController.initialize()
+    .then ->
+      controller.startSensing()
+      controller.updateLcd()
+    .catch (error) ->
+      console.error "BACKEND INIT FAILED"
+      console.error error.message
+      console.error error.stack
+      devices.lcd.error 'Booting', 'Failed'
+      process.exit 1

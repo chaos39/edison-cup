@@ -40,18 +40,17 @@ class Backend
 
     @config.initialize()
       .then =>
-        @client = new Client @config.serverUrl
-        @_ensureRegistered()
+        @client = new Client @config
+        @_setIdentity()
       .then =>
-        console.error @config.identity
         @client.setIdentity @config.identity
       .then =>
-        return true  # HACK: disable push cause WebSockets are blocked
         identity = @config.identity
+        return true unless identity.push
         @pushManager = new W3gram.PushRegistrationManager identity.push
         @pushManager.register()
       .then (pushRegistration) =>
-        return true # HACK: disable push cause WebSockets are blocked
+        return true unless @config.identity.push
         @pushRegistration = pushRegistration
         @client.updatePushInfo pushRegistration
       .then =>
@@ -64,20 +63,26 @@ class Backend
         @_rejectReady = null
     @ready
 
-  # Makes sure that this board has an identity.
+  # Reloads the board's identity from the backend server.
   #
   # @return {Promise<Boolean>} resolved to true when this board is guaranteed
-  #   to have an identity
-  _ensureRegistered: ->
-    new Promise (resolve, reject) =>
-      unless @config.identity is null
-        resolve true
-        return
+  #   to have a fresh identity
+  reloadIdentity: ->
+    @_setIdentity()
+
+  # Creates or updates this board's identity.
+  #
+  # @return {Promise<Boolean>} resolved to true when this board is guaranteed
+  #   to have a fresh identity
+  _setIdentity: ->
+    identityPromise = if @config.identity
+      @client.setIdentity @config.identity
+      @client.reloadIdentity()
+    else
       @client.register()
-        .then (identity) =>
-          @config.setIdentity identity
-          resolve true
-        .catch (error) ->
-          reject error
+
+    identityPromise.then (identity) =>
+      # NOTE: setIdentity returns a promise that resolves to true.
+      @config.setIdentity identity
 
 module.exports = Backend

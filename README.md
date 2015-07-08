@@ -14,6 +14,17 @@ opkg update
 opkg upgrade
 ```
 
+While SSHed on the Edison, run the commands below to enable Bluetooth.
+
+```bash
+systemctl disable bluetooth
+rfkill unblock all
+/lib/systemd/systemd-rfkill save rfkill0
+/lib/systemd/systemd-rfkill save rfkill1
+/lib/systemd/systemd-rfkill save rfkill2
+/lib/systemd/systemd-rfkill save rfkill3
+```
+
 While SSHed on the Edison, point it to your test server, for development.
 
 ```bash
