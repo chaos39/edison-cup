@@ -97,7 +97,7 @@ class Config
             @serverUrl = data.trim()
             resolve @serverUrl
         else
-          @serverUrl = 'https://locky.herokuapp.com'
+          @serverUrl = 'https://smartcup.herokuapp.com'
           @_writeServerFile()
             .then =>
               resolve @serverUrl
