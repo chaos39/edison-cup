@@ -66,8 +66,8 @@ class Devices
     #@gyroscope = new Gyro 2
     # The alcohol sensor must be connected to AIO 0 and uses up GPIO 15.
     @alcohol = new Alcohol 0, 15
-    # The touch sensor must be connected to D 8 and uses up GPIO 8.
-    @touch = new Touch 8
+    # The touch sensor must be connected to D 5 and uses up GPIO 5.
+    @touch = new Touch 5
     # The rotary sensor must be connected to AIO 2.
     @rotary = new Rotary 2
     # The water sensor must be connected to D 4 and uses up GPIO 4.

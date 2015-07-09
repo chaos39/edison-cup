@@ -4,7 +4,7 @@ I2CLCD = require 'jsupm_i2clcd'
 class Lcd
   # Output an informational progress message.
   info: (line1, line2) ->
-    @write line1, line2, 0, 0, 255
+    @write line1, line2, 255, 255, 255
 
   # Output an alert that the user should notice.
   alert: (line1, line2) ->
@@ -38,6 +38,12 @@ class Lcd
     @_green = green
     @_blue = blue
     return
+
+  # Returns the LCD's current background color.
+  #
+  # @return {Array<Number>} an array of the 3 background colors
+  getBackground: ->
+    [@_red, @_green, @_blue]
 
   # Writes an LCD message to the LCD.
   #

@@ -77,9 +77,10 @@ class Client
       request options, (error, response, body) =>
         if error
           reject error
-
+          return
         if response.code < 200 || response.code >= 400
           reject new Error("Server returned HTTP error code #{response.code}")
+          return
         try
           data = JSON.parse body
         catch jsonError

@@ -4,14 +4,16 @@ Backend = require './backend.coffee'
 Controller = require './controller.coffee'
 Devices = require './devices.coffee'
 LedBlinker = require './led_blinker.coffee'
+LedLcdCoupler = require './led_lcd_coupler.coffee'
 WebController = require './web_controller.coffee'
 
 backend = new Backend()
 devices = new Devices()
+coupler = new LedLcdCoupler devices.lcd
 blinkers =
-  red: new LedBlinker devices.redLed
-  blue: new LedBlinker devices.blueLed
-  green: new LedBlinker devices.greenLed
+  red: new LedBlinker coupler.ledWrapper(devices.redLed, 255, 0, 0)
+  blue: new LedBlinker coupler.ledWrapper(devices.blueLed, 0, 0, 255)
+  green: new LedBlinker coupler.ledWrapper(devices.greenLed, 0, 255, 0)
 controller = new Controller backend, devices, blinkers
 webController = new WebController backend, devices, blinkers
 
