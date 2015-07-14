@@ -1,12 +1,14 @@
 Acceleration = require './devices/acceleration.coffee'
 Alcohol = require './devices/alcohol.coffee'
 BtCount = require './devices/bt_count.coffee'
+FakeLcd = require './devices/fake_lcd.coffee'
 Gyro = require './devices/gyro.coffee'
 InternalLed = require './devices/internal_led.coffee'
 IpAddress = require './devices/ip_address.coffee'
 Lcd = require './devices/lcd.coffee'
 Led = require './devices/led.coffee'
 Light = require './devices/light.coffee'
+Moisture = require './devices/moisture.coffee'
 Rotary = require './devices/rotary.coffee'
 Temperature = require './devices/temperature.coffee'
 Touch = require './devices/touch.coffee'
@@ -55,25 +57,27 @@ class Devices
 
   constructor: ->
     # The Bluetooth sensor is virtual and just works.
-    @btCount = new BtCount()
+    #@btCount = new BtCount()
     # The IP address sensor is virtual and just works.
-    @ipAddress = new IpAddress()
+    #@ipAddress = new IpAddress()
     # The LCD can be connected to any I2C port.
-    @lcd = new Lcd()
+    @lcd = new FakeLcd()  # Replace with Lcd() if you have a real Grove LCD.
     # The accelerometer can be connected to any I2C port.
-    @acceleration = new Acceleration()
+    #@acceleration = new Acceleration()
     # The gyroscope must be connected to AIO 2.
     #@gyroscope = new Gyro 2
     # The alcohol sensor must be connected to AIO 0 and uses up GPIO 15.
-    @alcohol = new Alcohol 0, 15
+    #@alcohol = new Alcohol 0, 15
     # The touch sensor must be connected to D 5 and uses up GPIO 5.
-    @touch = new Touch 5
+    #@touch = new Touch 5
     # The rotary sensor must be connected to AIO 2.
-    @rotary = new Rotary 2
+    #@rotary = new Rotary 2
     # The water sensor must be connected to D 4 and uses up GPIO 4.
     @water = new Water 4
-    # The temperature sensor must be connected to AIO 3.
-    @temperature = new Temperature 3
+    # The temperature sensor must be connected to AIO 2.
+    @temperature = new Temperature 2
+    # The moisture sensor must be connected to AIO 3.
+    @moisture = new Moisture 3
     # The light sensor must be connected to AIO 1.
     @light = new Light 1
     # The red LED must be connected to D 2 and uses up GPIO 2.
@@ -86,18 +90,19 @@ class Devices
   # @return {Promise} resolved when all the hardware is initialized
   initialize: ->
     @lcd.clear()
-    @lcd.info 'LCD Initialized'
+    @lcd.info 'LCD', 'Initialized'
 
-    @lcd.info 'Calibrating', 'Gyroscope'
     Promise.resolve(true)
         .then =>
-          if @gyroscope isnt null
+          @lcd.info 'Calibrating', 'Gyroscope'
+          if @gyroscope
             @gyroscope.initialize()
           else
             true
         .then =>
-          @lcd.info 'Heating', 'Breathalizer'
-          @alcohol.initialize(true)  # skipHeating is true
+          if @alcohol
+            @lcd.info 'Heating', 'Breathalizer'
+            @alcohol.initialize(true)  # skipHeating is true
         .then =>
           @lcd.info 'Hardware', 'Ready'
 
@@ -106,17 +111,18 @@ class Devices
   # @return {Object} readings from all the sensors
   sensors: ->
     {
-      alcohol: @alcohol.value()
-      btCount: @btCount.value()
+      #alcohol: @alcohol.value()
+      #btCount: @btCount.value()
       #gravityX: @acceleration.valueX()
       #gravityY: @acceleration.valueY()
       #gravityZ: @acceleration.valueZ()
       #gyroscope: @gyroscope.value()
       #ipAddress: @ipAddress.value()
       light: @light.value()
-      rotary: @rotary.value()
+      moisture: @moisture.value()
+      #rotary: @rotary.value()
       temperature: @temperature.value()
-      touch: @touch.value()
+      #touch: @touch.value()
       water: @water.value()
     }
 

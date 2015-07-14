@@ -5,10 +5,11 @@ express = require 'express'
 #
 # This can be used to debug the board's sensors without a backend.
 class WebController
-  constructor: (backend, devices, blinkers) ->
+  constructor: (backend, devices, blinkers, twitter) ->
     @_backend = backend
     @_devices = devices
     @_blinkers = blinkers
+    @_twitter = twitter
     @_initPromise = null
     @_port =  process.env.PORT || 8010
 
@@ -19,6 +20,7 @@ class WebController
     @_app.get '/blink', @_onBlink.bind(@)
     @_app.get '/lcd', @_onLcd.bind(@)
     @_app.get '/uuids', @_onUuids.bind(@)
+    @_app.get '/tweet', @_onTweet.bind(@)
 
   # Starts the Web front-end.
   #
@@ -68,6 +70,21 @@ class WebController
 
     @_devices.lcd.write line1, line2, red, green, blue
     response.json value: 'ok'
+
+  # GET /tweet?status=Hello+World
+  _onTweet: (request, response) ->
+    statusText = request.params.status || request.query.status
+    if statusText
+      @_twitter.tweet(statusText)
+        .then ->
+          response.json value: 'ok'
+        .catch (error) =>
+          response.json value: 'failed'
+          @_devices.lcd.error "Tweeting failed"
+          console.error error.message
+          console.backtrace error
+    else
+      response.json value: 'missing status'
 
   # GET /uuids
   _onUuids: (request, response) ->

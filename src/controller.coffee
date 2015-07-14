@@ -1,9 +1,10 @@
 # Shuttles data around between the backend and the sensors.
 class Controller
-  constructor: (backend, devices, blinkers) ->
+  constructor: (backend, devices, blinkers, twitter) ->
     @_backend = backend
     @_devices = devices
     @_blinkers = blinkers
+    @_twitter = twitter
     @_senseInterval = 1000
     @_senseIntervalHandler = null
     @_oldSensors = {}
@@ -35,11 +36,14 @@ class Controller
 
   # Updates the LCD message to reflect the current board's identity.
   updateLcd: ->
-    if @_backend.config.identity.code
-      code = @_backend.config.identity.code.replace(/\w{3}/g, "$& ")
-      @_devices.lcd.alert 'Board code', code
+    if @_backend.config.setverUrl
+      if @_backend.config.identity.code
+        code = @_backend.config.identity.code.replace(/\w{3}/g, "$& ")
+        @_devices.lcd.alert 'Board code', code
+      else
+        @_devices.lcd.info 'Registered', @_backend.config.identity.name
     else
-      @_devices.lcd.info 'Registered', @_backend.config.identity.name
+      @_devices.lcd.info 'Device', 'Ready'
 
   # Stops the sensing loop, if it was started.
   #
@@ -58,11 +62,15 @@ class Controller
     sensorsDiff = @_sensorsDiff @_oldSensors, newSensors
     return if sensorsDiff is null
     @_oldSensors = newSensors
-    @_backend.client.updateSensors(sensorsDiff)
-      .then (reaction) =>
-        for blinkerName, blinkTime of reaction
-          if blinker = @_blinkers[blinkerName]
-            blinker.blinkFor blinkTime
+    if @_backend.config.serverUrl
+      @_backend.client.updateSensors(sensorsDiff)
+    if @_twitter._config
+      if 'water' of sensorsDiff
+        if sensorsDiff['water'] is -1
+          @_twitter.tweet "I am out of water. Please help me!"
+        else if sensorsDiff['water'] is 1
+          @_twitter.tweet "I now have water. Thank you!"
+
     return
 
   # Computes the difference between two sensor readings.

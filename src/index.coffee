@@ -5,6 +5,7 @@ Controller = require './controller.coffee'
 Devices = require './devices.coffee'
 LedBlinker = require './led_blinker.coffee'
 LedLcdCoupler = require './led_lcd_coupler.coffee'
+Twitter = require './twitter.coffee'
 WebController = require './web_controller.coffee'
 
 backend = new Backend()
@@ -14,12 +15,15 @@ blinkers =
   red: new LedBlinker coupler.ledWrapper(devices.redLed, 255, 0, 0)
   blue: new LedBlinker coupler.ledWrapper(devices.blueLed, 0, 0, 255)
   green: new LedBlinker coupler.ledWrapper(devices.greenLed, 0, 255, 0)
-controller = new Controller backend, devices, blinkers
-webController = new WebController backend, devices, blinkers
+twitter = new Twitter()
+controller = new Controller backend, devices, blinkers, twitter
+webController = new WebController backend, devices, blinkers, twitter
 
 Promise.resolve(true)
+    #.then ->
+    #  backend.initialize()
     .then ->
-      backend.initialize()
+      twitter.initialize()
     .then ->
       devices.initialize()
     .then ->
