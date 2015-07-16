@@ -1,3 +1,5 @@
+moment = require 'moment-timezone'
+
 # Shuttles data around between the backend and the sensors.
 class Controller
   constructor: (backend, devices, blinkers, twitter) ->
@@ -7,6 +9,7 @@ class Controller
     @_twitter = twitter
     @_senseInterval = 1000
     @_senseIntervalHandler = null
+    @_minDeltas = { temperature: 3 }
     @_oldSensors = {}
 
   # Initializes the controller, after the backend and devices are set up.
@@ -61,15 +64,21 @@ class Controller
     newSensors = @_devices.sensors()
     sensorsDiff = @_sensorsDiff @_oldSensors, newSensors
     return if sensorsDiff is null
-    @_oldSensors = newSensors
     if @_backend.config.serverUrl
       @_backend.client.updateSensors(sensorsDiff)
-    if @_twitter._config
+    if timeZone = @_twitter.config('timezone')
+      timePrefix = moment().tz(timeZone).format("ddd h:mm a")
       if 'water' of sensorsDiff
-        if sensorsDiff['water'] is -1
-          @_twitter.tweet "I am out of water. Please help me!"
-        else if sensorsDiff['water'] is 1
-          @_twitter.tweet "I now have water. Thank you!"
+        if sensorsDiff.water is -1
+          @_twitter.tweet(timePrefix +
+              " - I am out of water. Please help me!")
+        else if sensorsDiff.water is 1
+          @_twitter.tweet "#{timePrefix} - I now have water. Thank you!"
+
+      if 'temperature' of sensorsDiff
+        temperature = sensorsDiff.temperature
+        @_twitter.tweet(timePrefix +
+            " - My surrounding temperature is now #{temperature} C.")
 
     return
 
@@ -82,9 +91,15 @@ class Controller
   _sensorsDiff: (oldSensors, newSensors) ->
     diff = null
     for name, value of newSensors
-      continue if oldSensors[name] is value
+      oldValue = oldSensors[name]
+      continue if oldValue is value
+      unless typeof oldValue is 'undefined'
+        delta = Math.abs(value - oldValue)
+        continue if (minDelta = @_minDeltas[name]) && (delta < minDelta)
+
       diff = {} if diff is null
       diff[name] = value
+      oldSensors[name] = value
     diff
 
   # Called when a push notification is received.

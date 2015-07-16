@@ -1,5 +1,6 @@
 errorHandler = require 'errorhandler'
 express = require 'express'
+moment = require 'moment-timezone'
 
 # The Web debugging front-end.
 #
@@ -19,8 +20,9 @@ class WebController
     @_app.get '/s/:sensor', @_onSensor.bind(@)
     @_app.get '/blink', @_onBlink.bind(@)
     @_app.get '/lcd', @_onLcd.bind(@)
-    @_app.get '/uuids', @_onUuids.bind(@)
+    @_app.get '/time', @_onTime.bind(@)
     @_app.get '/tweet', @_onTweet.bind(@)
+    @_app.get '/uuids', @_onUuids.bind(@)
 
   # Starts the Web front-end.
   #
@@ -70,6 +72,10 @@ class WebController
 
     @_devices.lcd.write line1, line2, red, green, blue
     response.json value: 'ok'
+
+  # GET /time
+  _onTime: (request, response) ->
+    response.json value: moment().format("dddd, MMMM Do YYYY, h:mm:ss a ZZ")
 
   # GET /tweet?status=Hello+World
   _onTweet: (request, response) ->

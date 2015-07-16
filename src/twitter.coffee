@@ -9,6 +9,7 @@ TwitterClient = require 'twitter'
 # {
 #   "key": "twitter API key",
 #   "secret": "twitter API secret",
+#   "timezone": "America/New_York",
 #   "token_key": "twitter access token key",
 #   "token_secret": "twitter access token secret"
 # }
@@ -26,6 +27,14 @@ class Twitter
           @_loadApiKey()
         .then =>
           @_buildTwitterClient()
+
+  # Retrieves a configuration key.
+  #
+  # @param {String} key the configuration key to be retrieved
+  # @return {String} the configuration value
+  config: (key) ->
+    return null if @_config is null
+    @_config[key]
 
   # Makes sure that the configuration directory exists.
   #
