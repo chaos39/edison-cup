@@ -46,11 +46,12 @@ class Client
   # Sends this board's sensor information to the backend server.
   #
   # @param {Object} sensors sensor data to be sent to the backend
+  # @param {Number} boardTime the reading time to be sent to the backend
   # @return {Promise<Object>} resolves to the backend's reaction to the sensor
   #   information
-  updateSensors: (sensors) ->
+  updateSensors: (sensors, boardTime) ->
     url = "#{@_serverUrl}/boards/#{@_key}/sensors.json"
-    @_jsonRequest('PUT', url, sensors: sensors)
+    @_jsonRequest('PUT', url, sensors: sensors, board_time: boardTime)
 
   # Issues a generic JSON request to the backend.
   #

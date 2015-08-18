@@ -8,7 +8,9 @@ IpAddress = require './devices/ip_address.coffee'
 Lcd = require './devices/lcd.coffee'
 Led = require './devices/led.coffee'
 Light = require './devices/light.coffee'
+Loudness = require './devices/loudness.coffee'
 Moisture = require './devices/moisture.coffee'
+Motion = require './devices/motion.coffee'
 Rotary = require './devices/rotary.coffee'
 Temperature = require './devices/temperature.coffee'
 Touch = require './devices/touch.coffee'
@@ -61,7 +63,8 @@ class Devices
     # The IP address sensor is virtual and just works.
     #@ipAddress = new IpAddress()
     # The LCD can be connected to any I2C port.
-    @lcd = new FakeLcd()  # Replace with Lcd() if you have a real Grove LCD.
+    #@lcd = new FakeLcd()  # Replace with Lcd() if you have a real Grove LCD.
+    @lcd = new Lcd()
     # The accelerometer can be connected to any I2C port.
     #@acceleration = new Acceleration()
     # The gyroscope must be connected to AIO 2.
@@ -69,17 +72,21 @@ class Devices
     # The alcohol sensor must be connected to AIO 0 and uses up GPIO 15.
     #@alcohol = new Alcohol 0, 15
     # The touch sensor must be connected to D 5 and uses up GPIO 5.
-    #@touch = new Touch 5
+    @touch = new Touch 5
     # The rotary sensor must be connected to AIO 2.
     #@rotary = new Rotary 2
     # The water sensor must be connected to D 4 and uses up GPIO 4.
-    @water = new Water 4
-    # The temperature sensor must be connected to AIO 2.
-    @temperature = new Temperature 2
+    #@water = new Water 4
+    # The temperature sensor must be connected to AIO 3.
+    @temperature = new Temperature 3
     # The moisture sensor must be connected to AIO 3.
-    @moisture = new Moisture 3
+    #@moisture = new Moisture 3
     # The light sensor must be connected to AIO 1.
     @light = new Light 1
+    # The loudness sensor must be connected to AIO 0.
+    @loudness = new Loudness 0
+    # The motion sensor must be connected to D 4 and uses up GPIO 4.
+    @motion = new Motion 4
     # The red LED must be connected to D 2 and uses up GPIO 2.
     @redLed = new Led 2
     # The blue LED must be connected to D 3 and uses up GPIO 3.
@@ -119,11 +126,13 @@ class Devices
       #gyroscope: @gyroscope.value()
       #ipAddress: @ipAddress.value()
       light: @light.value()
-      moisture: @moisture.value()
+      loudness: @loudness.value()
+      motion: @motion.value()
+      #moisture: @moisture.value()
       #rotary: @rotary.value()
       temperature: @temperature.value()
-      #touch: @touch.value()
-      water: @water.value()
+      touch: @touch.value()
+      #water: @water.value()
     }
 
 

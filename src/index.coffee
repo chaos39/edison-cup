@@ -20,8 +20,8 @@ controller = new Controller backend, devices, blinkers, twitter
 webController = new WebController backend, devices, blinkers, twitter
 
 Promise.resolve(true)
-    #.then ->
-    #  backend.initialize()
+    .then ->
+      backend.initialize()
     .then ->
       twitter.initialize()
     .then ->

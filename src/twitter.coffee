@@ -71,6 +71,9 @@ class Twitter
 
   # Sets up the Twitter client instance variable.
   _buildTwitterClient: ->
+    if @_config is null
+      @_client = null
+      return
     @_client = new TwitterClient(
         consumer_key: @_config.key,
         consumer_secret: @_config.secret,

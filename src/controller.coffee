@@ -7,9 +7,9 @@ class Controller
     @_devices = devices
     @_blinkers = blinkers
     @_twitter = twitter
-    @_senseInterval = 1000
+    @_senseInterval = 500
     @_senseIntervalHandler = null
-    @_minDeltas = { temperature: 3 }
+    @_minDeltas = { } # { temperature: 3 }
     @_oldSensors = {}
 
   # Initializes the controller, after the backend and devices are set up.
@@ -65,7 +65,7 @@ class Controller
     sensorsDiff = @_sensorsDiff @_oldSensors, newSensors
     return if sensorsDiff is null
     if @_backend.config.serverUrl
-      @_backend.client.updateSensors(sensorsDiff)
+      @_backend.client.updateSensors(sensorsDiff, Date.now())
     if timeZone = @_twitter.config('timezone')
       timePrefix = moment().tz(timeZone).format("ddd h:mm a")
       if 'water' of sensorsDiff
