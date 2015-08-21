@@ -1,6 +1,6 @@
 Acceleration = require './devices/acceleration.coffee'
 Alcohol = require './devices/alcohol.coffee'
-BtCount = require './devices/bt_count.coffee'
+#BtCount = require './devices/bt_count.coffee'
 FakeLcd = require './devices/fake_lcd.coffee'
 Gyro = require './devices/gyro.coffee'
 InternalLed = require './devices/internal_led.coffee'
@@ -11,9 +11,11 @@ Light = require './devices/light.coffee'
 Loudness = require './devices/loudness.coffee'
 Moisture = require './devices/moisture.coffee'
 Motion = require './devices/motion.coffee'
+RawGpio = require './devices/raw_gpio.coffee'
 Rotary = require './devices/rotary.coffee'
 Temperature = require './devices/temperature.coffee'
 Touch = require './devices/touch.coffee'
+Vibration = require './devices/vibration.coffee'
 Water = require './devices/water.coffee'
 
 
@@ -48,6 +50,21 @@ class Devices
   # @property {Light} the light sensor
   light: null
 
+  # @property {Moisture} the moisture sensor
+  moisture: null
+
+  # @property {Loudness} the loudness sensor
+  loudness: null
+
+  # @property {Motion} the motion sensor
+  motion: null
+
+  # @property {RawGpio} the PIR sensor with a large lens
+  pirxl: null
+
+  # @property {Vibration} the piezo vibration sensor
+  vibration: null
+
   # @property {Led} the red LED
   redLed: null
 
@@ -63,8 +80,8 @@ class Devices
     # The IP address sensor is virtual and just works.
     #@ipAddress = new IpAddress()
     # The LCD can be connected to any I2C port.
-    #@lcd = new FakeLcd()  # Replace with Lcd() if you have a real Grove LCD.
     @lcd = new Lcd()
+    #@lcd = new FakeLcd()  # Replace with Lcd() if you have a real Grove LCD.
     # The accelerometer can be connected to any I2C port.
     #@acceleration = new Acceleration()
     # The gyroscope must be connected to AIO 2.
@@ -85,8 +102,12 @@ class Devices
     @light = new Light 1
     # The loudness sensor must be connected to AIO 0.
     @loudness = new Loudness 0
+    # The piezo vibration sensor must be connected to AIO 2
+    @vibration = new Vibration 2
     # The motion sensor must be connected to D 4 and uses up GPIO 4.
     @motion = new Motion 4
+    # The PIR sensor is wired directly into the GPIO 8 pin.
+    @pirxl = new RawGpio 8
     # The red LED must be connected to D 2 and uses up GPIO 2.
     @redLed = new Led 2
     # The blue LED must be connected to D 3 and uses up GPIO 3.
@@ -125,13 +146,15 @@ class Devices
       #gravityZ: @acceleration.valueZ()
       #gyroscope: @gyroscope.value()
       #ipAddress: @ipAddress.value()
-      light: @light.value()
+      #light: @light.value()
       loudness: @loudness.value()
       motion: @motion.value()
+      pirxl: @pirxl.value()
       #moisture: @moisture.value()
       #rotary: @rotary.value()
-      temperature: @temperature.value()
-      touch: @touch.value()
+      #temperature: @temperature.value()
+      #touch: @touch.value()
+      vibration: @vibration.value()
       #water: @water.value()
     }
 
